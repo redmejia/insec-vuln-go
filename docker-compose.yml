@@ -1,0 +1,53 @@
+version: '3'
+
+# vuln-go services
+services:
+
+  # user 
+  user-service:
+    build:
+      context: ./user-service
+      dockerfile: ./user-service.dockerfile
+    restart: always
+    ports:
+      - "8080:80"
+    deploy:
+      mode: replicated
+      replicas: 1
+    volumes:
+      - ./user-service/dist/:/app/
+    environment:
+      DSN: "host=db-postgres port=5432 user=postgres password=password dbname=db-vulngo sslmode=disable timezone=UTC connect_timeout=5"
+
+  # smtp service
+  mail-service:
+    build: 
+      context: ./mail-service
+      dockerfile: ./mail-service.dockerfile
+    restart: always
+    ports:
+      - "8081:587"
+    volumes:
+      - ./mail-service/dist/:/app/
+    environment:
+      host: mailcatcher
+      port: 1025
+
+  # database
+  db-postgres:
+    image: 'postgres:14.0'
+    ports:
+      - "5432:5432"
+    restart: always
+    volumes:
+      - ./vuln-db/data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: db-vulngo
+  
+  mailcatcher:
+    image: schickling/mailcatcher
+    ports:
+      - "1080:1080"
+      - "1025:1025"

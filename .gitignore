@@ -1,0 +1,4 @@
+
+/mail-service/dist/*
+/user-service/dist/*
+/vuln-db/data
