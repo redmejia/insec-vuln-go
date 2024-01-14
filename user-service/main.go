@@ -16,10 +16,17 @@ func main() {
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	errorLog := log.New(os.Stdout, "ERROR\t", log.Ldate|log.Ltime)
 
-	db, err := database.DSNConnection(os.Getenv("DSN"))
+	infoDbLog := log.New(os.Stdout, "INFO-DB\t", log.Ldate|log.Ltime)
+	errorDbLog := log.New(os.Stdout, "ERROR-DB\t", log.Ldate|log.Ltime)
+
+	greeting, db, err := database.DSNConnection(os.Getenv("DSN"))
 	if err != nil {
 		log.Println("ERROR CONN ", err)
 	}
+
+	infoDbLog.Println("Database created : ", greeting)
+
+	defer db.Close()
 
 	app := &handlers.App{
 		Port:         ":80", // 80 on container
@@ -29,10 +36,12 @@ func main() {
 		InfoLog:      infoLog,
 		Db: &database.DbModel{
 			DB:       db,
-			InfoLog:  infoLog,
-			ErrorLog: errorLog,
+			InfoLog:  infoDbLog,
+			ErrorLog: errorDbLog,
 		},
 	}
+
+	app.Db.CreatingTestData()
 
 	srv := &http.Server{
 		Addr:         app.Port,

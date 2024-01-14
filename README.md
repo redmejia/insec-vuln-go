@@ -32,12 +32,19 @@ Restart
     make restart
 ```
 
-Database\
-Postgres database go to user-service/internal/migration/create.sql.
-To persist database on your local machine create a directory on your root application
+Database
+- User
+    postgres
+- Password
+    password
+- Database Name 
+    db-vulngo
+
+To persist data on your local machine create a directory on your root application
+
 ```bash
     mkdir -p vuln-go/data 
 ```
 
 
-For persist db create a directory 
+

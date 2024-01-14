@@ -8,12 +8,9 @@ services:
     build:
       context: ./user-service
       dockerfile: ./user-service.dockerfile
-    restart: always
+    # restart: always
     ports:
       - "8080:80"
-    deploy:
-      mode: replicated
-      replicas: 1
     volumes:
       - ./user-service/dist/:/app/
     environment:
@@ -24,7 +21,7 @@ services:
     build: 
       context: ./mail-service
       dockerfile: ./mail-service.dockerfile
-    restart: always
+    # restart: always
     ports:
       - "8081:587"
     volumes:
@@ -39,8 +36,9 @@ services:
     ports:
       - "5432:5432"
     restart: always
-    volumes:
-      - ./vuln-db/data:/var/lib/postgresql/data
+    # uncoment to persist data
+    # volumes:
+    #   - ./vuln-db/data:/var/lib/postgresql/data
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password

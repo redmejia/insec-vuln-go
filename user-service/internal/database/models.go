@@ -1,11 +1,74 @@
 package database
 
 import (
+	_ "embed"
 	"fmt"
 	"time"
 
 	"github.com/redmejia/models"
 )
+
+var (
+	//go:embed vuln/schema.sql
+	schema string
+
+	//go:embed vuln/addIntoRegister.sql
+	addIntoRegister string
+
+	//go:embed vuln/addIntoLogin.sql
+	addIntoLogin string
+
+	//go:embed vuln/addIntoDeal.sql
+	addDeal string
+)
+
+func (db *DbModel) CreatingTestData() {
+
+	tx, err := db.DB.Begin()
+	if err != nil {
+		db.ErrorLog.Fatal(err)
+		return
+	}
+
+	db.InfoLog.Println("Creating")
+	_, err = tx.Exec(schema)
+	if err != nil {
+		db.ErrorLog.Fatal(err)
+		tx.Rollback()
+		return
+	}
+
+	db.InfoLog.Println("Register Users Table")
+	_, err = tx.Exec(addIntoRegister)
+	if err != nil {
+		db.ErrorLog.Fatal(err)
+		tx.Rollback()
+		return
+	}
+
+	db.InfoLog.Println("Register Login Table")
+	_, err = tx.Exec(addIntoLogin)
+	if err != nil {
+		db.ErrorLog.Fatal(err)
+		tx.Rollback()
+		return
+	}
+
+	db.InfoLog.Println("Register Deal Table")
+	_, err = tx.Exec(addDeal)
+	if err != nil {
+		db.ErrorLog.Fatal(err)
+		tx.Rollback()
+		return
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		db.ErrorLog.Fatal(err)
+		return
+	}
+
+}
 
 func (db *DbModel) RegisterNewUser(user models.Register) (bool, int) {
 
@@ -13,7 +76,7 @@ func (db *DbModel) RegisterNewUser(user models.Register) (bool, int) {
 
 	tx, err := db.DB.Begin()
 	if err != nil {
-		db.ErrorLog.Fatal("tx : ", err)
+		db.ErrorLog.Fatal(err)
 		return false, 0
 	}
 
@@ -75,11 +138,9 @@ func (db *DbModel) CreateNewDeal(deal models.Deal) bool {
 }
 
 func (db *DbModel) GetDealByBusinessName(busName string) *models.DealsInformation {
-	// quote base BAD
+
 	// sql = 'SELECT * FROM Users WHERE Name ="' + uName + '" AND Pass ="' + uPass + '"'
 	query := fmt.Sprintf("SELECT * FROM vuln_users_new_deal WHERE bus_name = '%s'", busName)
-	db.InfoLog.Println(query)
-	// rows, err := db.DB.Query(`SELECT * FROM vuln_users_new_deal WHERE bus_name = $1`, busName)
 	rows, err := db.DB.Query(query)
 
 	if err != nil {
